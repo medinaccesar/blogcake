@@ -5,6 +5,23 @@ class PostsController extends AppController {
 	public $helpers = array('Html', 'Form', 'Flash');
 	public $components = array('Flash');
 
+	//autorización
+	public function isAuthorized($user) {
+		// todos los usuarios registrados pueden añadir artículos
+		if ($this->action === 'add') {
+			return true;
+		}
+		// El propietario de un artículo puede editarlo y borrarlo
+		if (in_array($this->action, array('edit', 'delete'))) {
+			$postId = (int) $this->request->params['pass'][0];
+			if ($this->Post->isOwnedBy($postId, $user['id'])) {
+				return true;
+			}
+		}
+		return parent::isAuthorized($user);
+	}
+
+
 
 	function index() {
 		$this->set('posts', $this->Post->find('all'));
@@ -16,6 +33,9 @@ class PostsController extends AppController {
 
 	public function add() {
 		if ($this->request->is('post')) {
+			//autorización
+			$this->request->data['Post']['user_id'] = $this->Auth->user('id');
+
 			if ($this->Post->save($this->request->data)) {
 				$this->Flash->success('Guardado correctamente');
 				$this->redirect(array('action' => 'index'));

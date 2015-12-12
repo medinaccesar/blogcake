@@ -49,10 +49,23 @@ class AppController extends Controller {
 				'Form' => array(
 					'passwordHasher' => 'Blowfish'
 				)
-			)
+			),
+
+			'authorize' => array('Controller') // añadido para autorización
+
 		)
 	);
-	
+
+	//autorización
+	public function isAuthorized($user) {
+		// Admin puede acceder a todo
+		if (isset($user['role']) && $user['role'] === 'admin') {
+			return true;
+		}
+		// por defecto denegamos
+		return false;
+	}
+
 	public function beforeFilter() {
 		$this->Auth->allow('index', 'view');
 	}
